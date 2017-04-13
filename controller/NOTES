@@ -1,0 +1,32 @@
+Kobo touch timing ED060SCE
+ ┌─┐ 
+─┘ └─
+XCL:
+clock cycle :
+L = 83ns, H = 41.5ns, L=41.5ns, H = 83ns, L=41.5ns, H=41.5ns
+
+3 cycle = 332ns ? cycle = 110.66, cycle =~ 110ns ?
+
+SPH/XSTL: 
+cycle 19_208ns
+H = 5_875ns
+L = 13_333ns
+
+LE:
+H = 125ns
+
+    ┌─┐          ┌─┐  ┌───┐  ┌─┐       ┌─┐  ┌───┐  ┌─┐                 ┌─┐
+cl  ┘ └───...────┘ └──┘   └──┘ └──...──┘ └──┘   └──┘ └───────...───────┘ └
+                                                ┌───────┐ 
+le  ──────...─────────────────────...───────────┘       └─ 416.6ns before next H cl
+	──────...─┐ 333.3ns between last H cl and L sph
+sph           └───────────────────...───────────────── 
+
+H LE - L SPH = 19_583ns
+
+=~ 291.6ns without cl between H le and L sph
+
+OE:
+H = 11_853_083ns
+L = 19_208ns
+

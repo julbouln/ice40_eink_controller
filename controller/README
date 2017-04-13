@@ -1,0 +1,31 @@
+eink controller
+
+Eink ED06SC7 display signals:
+	gmode/mode1: output mode
+	cl: source clock
+	ckv: gate clock
+	spv (start pulse gate): high->low start gate sequence
+	sph/xstl (start pulse source): high->low start source sequence
+	le (latch enable): low->high load data
+	oe (output enable): high->low output data
+	d[7:0]: data
+
+source:
+     ┌─┐  ┌─┐  ┌─┐  ┌─┐  ┌─┐
+cl  ─┘ └──┘ └──┘ └──┘ └──┘ └─ 50ns cycle
+    ───┐    ┌────────────────
+sph    └────┘
+                    ┌─┐           
+le  ────────────────┘ └──────
+                                                 
+d[7:0] __DD___DD___DD___
+
+gate:
+     ┌─┐  ┌─┐  ┌─┐  ┌─┐  ┌─┐
+ckv ─┘ └──┘ └──┘ └──┘ └──┘ └─ min L 0.5 us
+    ──┐    ┌─────────────────
+spv   └────┘
+
+References:
+http://essentialscrap.com/eink/waveforms.html
+http://www.eevblog.com/forum/microcontrollers/interfacing-epd-%28e-ink%29-display-from-kindle-anyone-tried/
