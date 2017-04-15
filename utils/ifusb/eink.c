@@ -21,10 +21,10 @@ double eink_bench()
 
 void eink_init() {
 	printf("ifusb_spi_set_freq\n");
-//	ifusb_spi_set_freq(IFUSB_SPI_FREQ_12MHZ);
 //	ifusb_spi_set_freq(IFUSB_SPI_FREQ_325KHZ);
-	ifusb_spi_set_freq(IFUSB_SPI_FREQ_12MHZ);
 //	ifusb_spi_set_freq(IFUSB_SPI_FREQ_3MHZ);
+	ifusb_spi_set_freq(IFUSB_SPI_FREQ_12MHZ);
+//	ifusb_spi_set_freq(IFUSB_SPI_FREQ_24MHZ);
 
 	ifusb_gpio_config(CS_PIN, IFUSB_OUTPUT_MODE);
 	ifusb_gpio_set(CS_PIN);
@@ -112,13 +112,10 @@ void eink_clear() {
 	int chunk_pos = 0;
 	uint8_t chunk_buf[CHUNK_SIZE];
 
-//	cmd[0] = EINK_MODE_CLEAR;
-//	cmd[1] = 0x00;
 	t1 = eink_bench();
 
 	cmd[0] = EINK_SET_MODE;
 	cmd[1] = 0x00;
-
 
 	ifusb_gpio_clear(CS_PIN);
 	ifusb_spi_send(cmd, 2);
@@ -138,13 +135,11 @@ void eink_clear() {
 			ifusb_spi_send(chunk_buf, CHUNK_SIZE);
 			chunk_pos = 0;
 		}
-
 	}
 
 	ifusb_spi_send(chunk_buf, chunk_pos);
 	ifusb_gpio_set(CS_PIN);
 
-//	cmd[0] = EINK_DRAW_FB;
 	cmd[0] = EINK_DRAW;
 	cmd[1] = 0x00;
 
@@ -169,14 +164,11 @@ void eink_draw(uint8_t *buf) {
 	uint8_t cmd[2];
 	int i, k;
 	int chunk_pos = 0;
-	uint8_t chunk_buf[1024];
+	uint8_t chunk_buf[CHUNK_SIZE];
 
 	t1 = eink_bench();
 
 	// set draw mode
-//	cmd[0] = EINK_MODE_DRAW;
-//	cmd[1] = 0x00;
-
 	cmd[0] = EINK_SET_MODE;
 	cmd[1] = 0x01;
 
@@ -194,11 +186,10 @@ void eink_draw(uint8_t *buf) {
 		chunk_buf[chunk_pos] = buf[i];
 		chunk_pos++;
 		// flush
-		if (chunk_pos >= 1024) {
-			ifusb_spi_send(chunk_buf, 1024);
+		if (chunk_pos >= CHUNK_SIZE) {
+			ifusb_spi_send(chunk_buf, CHUNK_SIZE);
 			chunk_pos = 0;
 		}
-
 	}
 
 	ifusb_spi_send(chunk_buf, chunk_pos);
@@ -207,7 +198,6 @@ void eink_draw(uint8_t *buf) {
 	printf("eink_draw data sent in %f\n", t4 - t3);
 
 	// draw
-//	cmd[0] = EINK_DRAW_FB;
 	cmd[0] = EINK_DRAW;
 	cmd[1] = 0x00;
 

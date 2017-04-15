@@ -1,5 +1,8 @@
 FPGA & STM32F0 driven EINK controller
 
+Final FPGA board: https://oshpark.com/shared_projects/rBoQ8bop
+ifusb companion: https://github.com/julbouln/ifusb
+
 Prototype:
 - OLIMEX iCE40HX1K-EVB (https://www.olimex.com/Products/FPGA/iCE40/iCE40HX1K-EVB/open-source-hardware)
 - NUCLEO-F042K6 (http://www.st.com/content/st_com/en/products/evaluation-tools/product-evaluation-tools/mcu-eval-tools/stm32-mcu-eval-tools/stm32-mcu-nucleo/nucleo-f042k6.html)
@@ -9,10 +12,9 @@ Prototype:
 
 Project tree:
 - controller/ EINK controller verilog icestorm project
-- hardware/ WIP custom ice40 & stm32f0 board + ED060SC7 connector board
+- hardware/ custom ice40 + ED060SC7 connector board
 - utils/ misc utilities, including dumper for various reverse engineered waveform file formats
 - utils/ifusb/ ifusb host driver
-- tests/ misc tests
 
 References:
 - http://essentialscrap.com/eink/

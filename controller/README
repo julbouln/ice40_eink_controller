@@ -1,4 +1,40 @@
-eink controller
+ice40 eink verilog controller
+
+SPI protocol
+
+Command 		Hex		Description
+EINK_PING 		0x01	Ping the chip
+EINK_STATUS 	0x02	Get current screen status
+EINK_WRITE 		0x03	Write data to framebuffer
+EINK_DRAW 		0x04	Draw framebuffer to screen
+EINK_SET_MODE 	0x05	Set current draw mode
+
+EINK_PING
+For testing purpose, simply ping the chip, should return the data send
+0x01 0xAA -> 0xAA
+
+EINK_STATUS
+Get screen status
+0x02 STATUS
+
+Where STATUS is:
+bits 7-3: reserved
+bits 2-1: current drawing mode (see EINK_SET_MODE)
+bit 0: ready or not
+
+EINK_WRITE
+Write pixels data to chip framebuffer
+0x03 followed by 800x600/4 = 120000 bytes representing pixels in
+
+EINK_DRAW
+Actually draw current framebuffer on panel
+0x04 0x00
+
+EINK_SET_MODE
+Set drawing mode
+MODE_CLEAR 	0x00 Clear the screen to white
+MODE_DRAW 	0x01 GC4 mode
+
 
 Eink ED06SC7 display signals:
 	gmode/mode1: output mode
