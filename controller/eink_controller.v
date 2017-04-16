@@ -33,6 +33,7 @@ module top(
            output MISO
        );
 
+// 100Mhz clock
 wire clk = CLK;
 
 reg 	read_n=1'b1,
@@ -49,6 +50,7 @@ wire [7:0] data_bus_out_l = data_bus_out[7:0];
 
 reg 			    rst=0;
 
+// bidirectional IO
 // https://www.reddit.com/r/yosys/comments/4p8723/iceblink40hx1k_and_yosys/
 
 wire 		    mem_out_en=~write_n;
@@ -66,36 +68,12 @@ SB_IO #(
       );
 
 wire [17:0] address;
-/*
-reg clk50 = 0;
 
-always@(posedge clk) begin
-    clk50 <= ~clk50; // 50mhz
-end
-
-reg clk25 = 0;
-
-always@(posedge clk50) begin
-    clk25 <= ~clk25; // 25mhz
-end
-
-reg clk12 = 0;
-
-always@(posedge clk25) begin
-    clk12 <= ~clk12; // 12.5mhz
-end
-*/
-/*
-wire clk20;
-clock_divn #(.N(5)) clk_div20(clk,rst,clk20);
-*/
+// SPI interface
 
 reg start = 1'b0;
 wire ready;
 reg [1:0] mode = 1;
-
-//wire [5:0] phase;
-//wire [7:0] data;
 
 parameter SPI_CMD_NONE = 3'h00;
 parameter SPI_CMD_PING = 3'h01;
@@ -139,7 +117,6 @@ parameter WRITE_DONE = 3;
 reg [2:0] write_state = WRITE_IDLE;
 reg [1:0] wait_flip = 0;
 
-
 always @(posedge clk) begin
     if(ready) begin // waiting for new command
         if(spi_start_message) begin // new SPI command received
@@ -148,20 +125,12 @@ always @(posedge clk) begin
             if(spi_received) begin // new SPI data received
                 if(spi_first_byte) begin // first byte is command
                     spi_tx_byte <= 8'h0;
-//                    spi_cmd <= spi_rx_byte;
                     spi_cmd <= spi_rx_byte[2:0];
                     spi_first_byte <= 1'b0;
                     address_bus <= 0;
                 end else begin // other bytes are command's data
                     case(spi_cmd)
                         SPI_CMD_WRITE: begin
-//                            data_bus_in <= {8'h0,spi_rx_byte};
-/*                            data_bus_in <= {data_out_r,spi_rx_byte};
-                            address_bus <= address_bus+1;
-                            write_n <= 1'b0;
-                            read_n <= 1'b1;
-                            ce_n <= 1'b0;
-                            */
                             write_state<=WRITE_START;
                         end                        
                         SPI_CMD_PING: begin
@@ -185,14 +154,13 @@ always @(posedge clk) begin
               // keep previous pixel value
               case(write_state) 
               WRITE_IDLE: begin
-                            // disable memory access
-//              address_bus <= 0;
-              write_n <= 1'b1;
-              read_n <= 1'b1;
-              ce_n <= 1'b1;
+                // disable memory access
+                write_n <= 1'b1;
+                read_n <= 1'b1;
+                ce_n <= 1'b1;
               end
               WRITE_START: begin
-              // keep previous data 
+                // keep previous data 
                 address_bus <= address_bus+1;
                 write_n <= 1'b1;
                 read_n <= 1'b0;
@@ -221,7 +189,6 @@ always @(posedge clk) begin
         end
     end else begin // panel drawing
         // reading sram
-//        spi_cmd <= SPI_CMD_NONE;
         start <= 0;
         address_bus <= address; // let controller manage address bus
         write_n <= 1'b1;
@@ -250,9 +217,13 @@ always @(posedge clk) begin
 end
 
 /* 
+  8-10ns 256K x 16bits SRAM
+  https://www.olimex.com/Products/_resources/ds_k6r4016v1d_rev40.pdf
+  Notes:
   2-bits buffer = 800*600 * 8/4 = 960kBits = 120kBytes
   4-bits buffer = 800*600 * 8/2 = 1920kBits = 240kBytes
 */
+
 asram #(.DATA_WIDTH(16),.ADDR_WIDTH(18)) sram(clk,
         read_n,
         write_n,

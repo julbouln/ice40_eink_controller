@@ -1,11 +1,10 @@
-`include "clock_divn.v"
 `include "waveform.v"
 `timescale 10ns/10ps
 module ed060sc7(
            input clk,
 `ifdef SIM
-           	output [7:0] source,
-           	output [9:0] gate,
+           output [7:0] source,
+           output [9:0] gate,
            output [16:0] address,
            output [6:0] phase,
 `else
@@ -28,12 +27,13 @@ module ed060sc7(
        );
 
 wire [1:0] mode;
-//wire cl;
-//clock_divn #(.N(10)) clk_div20(clk,rst,cl);
 
-
+// clock divider
+// CL_DIV=1 50Mhz cl
+// CL_DIV=2 25Mhz cl
+parameter CL_DIV = 2;
 reg [2:0] cl_counter=0;
-wire cl = cl_counter[2];
+wire cl = cl_counter[CL_DIV] == 1'b1;
 always @(posedge clk) begin
     cl_counter<=cl_counter+1;
 end
@@ -168,7 +168,7 @@ end
 
 // DATA
 
-always @(negedge cl) begin
+always @(posedge clk) begin
     data <= data_in;    
 end
 

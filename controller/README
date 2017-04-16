@@ -1,5 +1,9 @@
 ice40 eink verilog controller
 
+Notes
+
+Yosys 0.6 needed, because it seems there is a bug related to BRAM with current version https://github.com/cliffordwolf/yosys/issues/335
+
 SPI protocol
 
 Command 		Hex		Description
@@ -35,6 +39,10 @@ Set drawing mode
 MODE_CLEAR 	0x00 Clear the screen to white
 MODE_DRAW 	0x01 GC4 mode
 
+Waveform hex format
+
+x = color
+y = phase
 
 Eink ED06SC7 display signals:
 	gmode/mode1: output mode

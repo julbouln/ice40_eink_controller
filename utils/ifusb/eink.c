@@ -101,7 +101,22 @@ uint8_t eink_ready() {
 	return recv[2] & 0b1;
 }
 
-#define CHUNK_SIZE 1024
+#define CHUNK_SIZE 4096
+
+void eink_flip() {
+	uint8_t cmd[4];
+	cmd[0] = EINK_DRAW;
+	cmd[1] = 0x00;
+
+	ifusb_gpio_clear(CS_PIN);
+	ifusb_spi_send(cmd, 2);
+	ifusb_gpio_set(CS_PIN);
+
+	while (eink_ready() == 0) {
+		usleep(100);
+	}
+	usleep(1000);
+}
 
 void eink_clear() {
 	double t1, t2;
@@ -140,19 +155,7 @@ void eink_clear() {
 	ifusb_spi_send(chunk_buf, chunk_pos);
 	ifusb_gpio_set(CS_PIN);
 
-	cmd[0] = EINK_DRAW;
-	cmd[1] = 0x00;
-
-//	for(k=0;k<4;k++)
-	{
-		ifusb_gpio_clear(CS_PIN);
-		ifusb_spi_send(cmd, 2);
-		ifusb_gpio_set(CS_PIN);
-
-		while (eink_ready() == 0) {
-			usleep(100);
-		}
-	}
+	eink_flip();
 	t2 = eink_bench();
 	printf("eink_clear in %f\n", t2 - t1);
 //sleep(3);
@@ -197,21 +200,7 @@ void eink_draw(uint8_t *buf) {
 	t4 = eink_bench();
 	printf("eink_draw data sent in %f\n", t4 - t3);
 
-	// draw
-	cmd[0] = EINK_DRAW;
-	cmd[1] = 0x00;
-
-//	for(k=0;k<2;k++)
-	{
-		ifusb_gpio_clear(CS_PIN);
-		ifusb_spi_send(cmd, 2);
-		ifusb_gpio_set(CS_PIN);
-
-		while (eink_ready() == 0) {
-			usleep(100);
-		}
-//	usleep(30000);
-	}
+	eink_flip();
 	t2 = eink_bench();
 	printf("eink_draw in %f\n", t2 - t1);
 

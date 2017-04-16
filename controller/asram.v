@@ -1,5 +1,5 @@
 /*
-Async SRAM controller
+Async SRAM controller for K6R4016V1D-TC10
 Based on Alliance AS6C1008 128x8 RAM chip mem_ctl by Jeremiah Mahler <jmmahler@gmail.com> 
 */
 module asram #(
