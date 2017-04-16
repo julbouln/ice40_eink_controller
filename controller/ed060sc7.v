@@ -29,8 +29,8 @@ module ed060sc7(
 wire [1:0] mode;
 
 // clock divider
-// CL_DIV=1 50Mhz cl
-// CL_DIV=2 25Mhz cl
+// CL_DIV=1 50Mhz cl - 20ns
+// CL_DIV=2 25Mhz cl - 40ns
 parameter CL_DIV = 2;
 reg [2:0] cl_counter=0;
 wire cl = cl_counter[CL_DIV] == 1'b1;

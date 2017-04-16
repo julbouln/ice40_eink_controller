@@ -4,6 +4,15 @@ Notes
 
 Yosys 0.6 needed, because it seems there is a bug related to BRAM with current version https://github.com/cliffordwolf/yosys/issues/335
 
+About performances
+
+Ifusb 12Mhz SPI
+1s : 0.25s WRITE + 0.75s DRAW(at 40ns)
+0.75s : 0.25s WRITE + 0.50s DRAW(at 20ns)
+
+Full framebuffer write: 800x600/4 = 120000 bytes
+At 12Mhz, SPI bandwidth should be around 9Mbs, so theoricaly we should have a write time of ~0.1s but ifusb will introduce latency to SPI because of USB (120000/64 = 1875 bulk packets)
+
 SPI protocol
 
 Command 		Hex		Description
@@ -73,3 +82,17 @@ spv   └────┘
 References:
 http://essentialscrap.com/eink/waveforms.html
 http://www.eevblog.com/forum/microcontrollers/interfacing-epd-%28e-ink%29-display-from-kindle-anyone-tried/
+
+TODO
+- 20ns operation works, but seems to be a bit buggy
+- add SPI command for setting waveform
+- 2-bits/4 colors only, must support 4-bits/16 colors (see next point)
+- refactor sram/waveform : 
+
+Instead of keeping flipping 2-bits pixel in framebuffer (old pix and new pix) and calculating panel 2-bits signal at drawing step, keep only old framebuffer in 4-bits form in highest part of sram (start at 128k) and calculate 2-bits signal at write step and keep it in lowest part of sram. With this method, we can achieve best performance (20ns operations at drawing), SPI bandwidth being limited by itself (8 cycles for sck 12Mhz) we have more timing room at this step. 
+
+Read the old value from sram, calculate the signal, and write the result to sram should take 4 cycles:
+- receive new pixel + set address of old pixel
+- read old pixel + set it to waveform calculator
+- read calculated result + set address and data to write calculation
+- wait data to be writen
