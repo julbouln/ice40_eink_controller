@@ -170,7 +170,7 @@ void eink_clear() {
 
 	t1 = eink_bench();
 
-	eink_set_mode(0x00);
+	eink_set_mode(MODE_INIT);
 
 	// clear data
 	cmd[0] = EINK_WRITE;
@@ -235,7 +235,7 @@ void eink_draw(uint8_t *buf) {
 
 	t1 = eink_bench();
 
-	eink_set_mode(0x01);
+	eink_set_mode(MODE_GC4);
 	eink_write_fb(buf);
 	eink_flip();
 

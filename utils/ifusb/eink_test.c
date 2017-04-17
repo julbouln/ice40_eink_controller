@@ -11,6 +11,8 @@
 #include "testcover4.h"
 char cmap[4] = {2, 1, 0, 3};
 
+//char cmap[4] = {3, 0, 0, 3};
+
 //#include "testepub2.h"
 //char cmap[4] = {3,1,0,2};
 
@@ -72,7 +74,9 @@ int main() {
 		}
 	}
 
-	eink_set_mode(0x01);
+//	eink_set_mode(MODE_DU);
+	eink_set_mode(MODE_GC4);
+
 	eink_write_fb(img_buf);
 
 
@@ -97,7 +101,7 @@ int main() {
 //		eink_flip();
 	}
 
-		eink_flip(img_buf);
+	eink_flip(img_buf);
 	sleep(3);
 
 	eink_exit();

@@ -21,6 +21,10 @@ extern "C" {
 #define PWRUP_PIN IFUSB_IO0
 #define WAKEUP_PIN IFUSB_IO1
 
+#define MODE_INIT 0x00
+#define MODE_DU 0x01
+#define MODE_GC4 0x02
+
 #define EINK_PING 0x01
 #define EINK_STATUS 0x02
 #define EINK_WRITE 0x03

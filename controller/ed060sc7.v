@@ -47,6 +47,8 @@ end
 
 reg [6:0] phase = 0;
 
+wire identical;
+
 `ifdef SIM
     reg [15:0] data_in;
     reg [7:0] raw_data_in;
@@ -69,7 +71,8 @@ waveform wv(clk,
             phase_count,
             mode,
             raw_data_in,
-            data_in
+            data_in,
+            identical
            );
 `endif
 
@@ -190,7 +193,11 @@ end
 
 always @(posedge clk) begin
     if(~clip || (source >= clip_x1 && source <= clip_x2 && gate >= clip_y1 && gate <= clip_y2)) begin
-        data <= data_in;
+//     if(~identical) begin
+            data <= data_in;
+//        end else begin
+//            data <= 8'h0;
+//        end
     end else begin
         data <= 8'h0;
     end

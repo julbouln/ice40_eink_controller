@@ -267,12 +267,12 @@ int main(int argc, char **argv) {
 								fprintf(stderr, "\n");
 							}
 
-							x += 4;
-							if (x == 16) {
+							x += 5;
+							if (x > 15) {
 								y++;
 								x = 0;
 							}
-							if (y == 16) {
+							if (y > 15) {
 								phase++;
 							}
 
@@ -294,12 +294,12 @@ int main(int argc, char **argv) {
 							if ((m + 1) % 4 == 0) {
 								fprintf(stderr, "\n");
 							}
-							x += 4;
-							if (x == 16) {
+							x += 5;
+							if (x > 15) {
 								y++;
 								x = 0;
 							}
-							if (y == 16) {
+							if (y > 15) {
 								phase++;
 
 							}

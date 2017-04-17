@@ -145,13 +145,13 @@ int main(int argc, char **argv)
 	res = stbi_xload(argv[1], &w, &h, &frames);
 	printf("%d %d %d\n", w, h, frames);
 
-
+	eink_set_mode(MODE_GC4);
 	eink_set_clip(0, h, 0, w);
 
 	int pass = 20;
 
 	for (k = 0; k < pass; k++) {
-		for ( frame = 0; frame < frames-1; frame++) {
+		for ( frame = 0; frame < frames - 1; frame++) {
 			int offset = frame * (sizeof(unsigned char) * 4 * w * h + 2);
 //		printf("%d %x%x%x%x\n", offset, res[offset]);
 			img_pos = 0;
@@ -166,7 +166,7 @@ int main(int argc, char **argv)
 							unsigned char *dp = res + offset + ((h - (j + p)) * w * 4 + i * 4);
 //						unsigned char dp = res + offset + (w - (j + p)) * w + i;
 //							if(dp)
-								pixel |= (dp[0] >> 6) << ((3 - p) * 2);
+							pixel |= (dp[0] >> 6) << ((3 - p) * 2);
 						}
 
 					} else {
@@ -179,7 +179,11 @@ int main(int argc, char **argv)
 				}
 //			printf("\n");
 			}
-			eink_draw(img_buf);
+//			eink_draw(img_buf);
+
+			eink_write_fb(img_buf);
+			eink_flip(img_buf);
+
 		}
 	}
 	eink_exit();

@@ -1,7 +1,7 @@
 PROJ = eink_controller
 PIN_DEF = ice40hx1k-evb.pcf
 DEVICE = hx1k
-CLK_CONSTRAINT = 75
+CLK_CONSTRAINT = 70
 
 all: $(PROJ).rpt $(PROJ).bin
 
@@ -41,7 +41,7 @@ clean:
 
 waveform:
 	cat waveform_init.hex > waveform.hex
+	cat waveform_du.hex >> waveform.hex
 	cat waveform_gc4.hex >> waveform.hex
-#	cat waveform_simple.hex >> waveform.hex
 
 .PHONY: all prog clean
