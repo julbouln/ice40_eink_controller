@@ -22,6 +22,10 @@ eink_test: tps65185.o eink.o eink_test.o
 eink_reader: tps65185.o eink.o eink_renderer_driver.o eink_reader.o
 	g++ $(CFLAGS) $(READER_CFLAGS) tps65185.o eink.o eink_renderer_driver.o eink_reader.o -o eink_reader $(EPUBTK_DIR)/libepubtk_default.a $(IFUSB_DIR)/libifusb.a -lm -lusb-1.0 `freetype-config --libs` -lncurses
 
+eink_gif: tps65185.o eink.o eink_gif.o
+	gcc -g -o eink_gif tps65185.o eink.o eink_gif.o $(IFUSB_DIR)/libifusb.a -lm -lusb-1.0
+
+
 clean:
 	rm -f *.o
 	rm -f *.a
