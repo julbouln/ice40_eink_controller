@@ -85,6 +85,19 @@ int main() {
 //		eink_draw(img_buf);
 //		eink_flip();
 	}
+
+
+	for (k = 0; k < pass; k++) {
+		eink_set_clip(200 - 10 * k, 600 + 10 * k, 200 - 10 * k, 400 + 10 * k);
+//		eink_set_clip( 10 * k, 800 - 10 * k, 10 * k, 600 - 10 * k);
+		printf("TEST %d\n", k);
+		eink_flip(img_buf);
+
+//		eink_draw(img_buf);
+//		eink_flip();
+	}
+
+		eink_flip(img_buf);
 	sleep(3);
 
 	eink_exit();
