@@ -81,12 +81,15 @@ parameter SPI_CMD_STATUS = 3'h02;
 parameter SPI_CMD_WRITE = 3'h03;
 parameter SPI_CMD_DRAW = 3'h04;
 parameter SPI_CMD_SET_MODE = 3'h05;
+parameter SPI_CMD_CLEAR_CLIP = 3'h06;
+parameter SPI_CMD_SET_CLIP = 3'h07;
 
 wire [7:0] spi_rx_byte;
 reg [7:0] spi_tx_byte = 8'h0;
 wire spi_received;
 reg spi_incoming = 0;
 reg spi_first_byte = 0;
+reg [2:0] spi_bytes_count = 0;
 wire spi_start_message;
 wire spi_end_message;
 
@@ -95,6 +98,21 @@ reg [2:0] spi_cmd = SPI_CMD_NONE;
 reg [7:0] data_out_r = 0;
 
 reg swap = 0;
+
+reg clip=0;
+
+reg [7:0] clip_x1=0;
+reg [7:0] clip_x2=200;
+
+reg [9:0] clip_y1=0;
+reg [9:0] clip_y2=600;
+
+parameter SPI_CLIP_X1 = 2;
+parameter SPI_CLIP_X2 = 3;
+parameter SPI_CLIP_Y1_H = 4;
+parameter SPI_CLIP_Y1_L = 5;
+parameter SPI_CLIP_Y2_H = 6;
+parameter SPI_CLIP_Y2_L = 7;
 
 spi_slave spi(clk,
               spi_rx_byte,
@@ -121,31 +139,73 @@ always @(posedge clk) begin
     if(ready) begin // waiting for new command
         if(spi_start_message) begin // new SPI command received
             spi_first_byte <= 1'b1;
+            spi_bytes_count <= 1;
         end else begin
             if(spi_received) begin // new SPI data received
-                if(spi_first_byte) begin // first byte is command
+                if(spi_bytes_count==1) begin // first byte is command
                     spi_tx_byte <= 8'h0;
                     spi_cmd <= spi_rx_byte[2:0];
                     spi_first_byte <= 1'b0;
+                    spi_bytes_count <= spi_bytes_count+1;
                     address_bus <= 0;
                 end else begin // other bytes are command's data
                     case(spi_cmd)
                         SPI_CMD_WRITE: begin
                             write_state<=WRITE_START;
+                            spi_bytes_count<=0;
                         end                        
                         SPI_CMD_PING: begin
                             spi_tx_byte <= spi_rx_byte;
+                            spi_bytes_count<=0;
                         end
                         SPI_CMD_DRAW: begin
                             start <= 1;
+                            spi_bytes_count<=0;
                         end
                         SPI_CMD_SET_MODE: begin
                             mode <= spi_rx_byte;
+                            spi_bytes_count<=0;
                         end
                         SPI_CMD_STATUS: begin
                             spi_tx_byte<={5'h0,mode,ready};
+                            spi_bytes_count<=0;
+                        end
+                        SPI_CMD_CLEAR_CLIP: begin
+                            clip<=0;
+                            spi_bytes_count<=0;
+                        end
+                        SPI_CMD_SET_CLIP: begin
+                          case(spi_bytes_count)
+                            SPI_CLIP_X1: begin
+                              clip_x1 <= spi_rx_byte;
+                            end
+                            SPI_CLIP_X2: begin
+                              clip_x2 <= spi_rx_byte;
+                            end
+                            SPI_CLIP_Y1_H: begin
+                              clip_y1[9:8] <= spi_rx_byte[1:0];
+                            end
+                            SPI_CLIP_Y1_L: begin
+                              clip_y1[7:0] <= spi_rx_byte;
+                            end
+                            SPI_CLIP_Y2_H: begin
+                              clip_y2[9:8] <= spi_rx_byte[1:0];
+                            end
+                            SPI_CLIP_Y2_L: begin
+                              clip_y2[7:0] <= spi_rx_byte;
+                            end
+                            default: begin
+                            end
+                          endcase
+                          if(spi_bytes_count < SPI_CLIP_Y2_L) begin
+                            spi_bytes_count<=spi_bytes_count+1;
+                          end else begin
+                            clip<=1;
+                            spi_bytes_count<=0;
+                          end
                         end
                         default: begin
+                            spi_bytes_count<=0;
                             // unknown command
                         end
                     endcase
@@ -168,6 +228,7 @@ always @(posedge clk) begin
                 write_state<=WRITE_FLIP;
               end
               WRITE_FLIP: begin
+                // data_bus_out_prev <= data_bus_out;
                 data_out_r <= data_bus_out_l;
                 // wait memory read
                 wait_flip <= wait_flip+1;           
@@ -175,6 +236,8 @@ always @(posedge clk) begin
                   write_state<=WRITE_DONE;
               end
               WRITE_DONE: begin
+                // address_bus <= address_bus + 1;
+                // data_bus_in <= data_bus_out_prev;
                 // put previous pixel value in memory high byte
                 data_bus_in <= {data_out_r,spi_rx_byte};
                 write_n <= 1'b0;
@@ -261,5 +324,11 @@ ed060sc7 eink(clk,
               LE,
               OE,
               SPH,
-              DATA);
+              DATA,
+              clip,
+              clip_x1,
+              clip_x2,
+              clip_y1,
+              clip_y2
+              );
 endmodule

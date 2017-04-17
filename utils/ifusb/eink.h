@@ -26,9 +26,12 @@ extern "C" {
 #define EINK_WRITE 0x03
 #define EINK_DRAW 0x04
 #define EINK_SET_MODE 0x05
+#define EINK_CLEAR_CLIP 0x06
+#define EINK_SET_CLIP 0x07
 
 void eink_init();
 uint8_t eink_ready();
+void eink_clear_clip();
 void eink_clear();
 void eink_draw(uint8_t *buf);
 void eink_exit();

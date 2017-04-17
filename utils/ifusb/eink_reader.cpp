@@ -47,7 +47,9 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "eink_reader: Error: %s not an ePub file\n", argv[1]);
 		exit(1);
 	}
+	eink_clear_clip();
 eink_clear();
+
 /*
 epub.go_to_next_page();
 epub.go_to_next_page();

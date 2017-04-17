@@ -23,7 +23,14 @@ module ed060sc7(
            output reg le,
            output reg oe,
            output reg sph,
-           output reg [7:0] data
+           output reg [7:0] data, // 4 x 2-bits pixel signal,
+
+           input clip,
+           input [7:0] clip_x1,
+           input [7:0] clip_x2,
+           input [9:0] clip_y1,
+           input [9:0] clip_y2
+
        );
 
 wire [1:0] mode;
@@ -31,7 +38,7 @@ wire [1:0] mode;
 // clock divider
 // CL_DIV=1 50Mhz cl - 20ns
 // CL_DIV=2 25Mhz cl - 40ns
-parameter CL_DIV = 2;
+parameter CL_DIV = 1;
 reg [2:0] cl_counter=0;
 wire cl = cl_counter[CL_DIV] == 1'b1;
 always @(posedge clk) begin
@@ -41,8 +48,8 @@ end
 reg [6:0] phase = 0;
 
 `ifdef SIM
-   reg [15:0] data_in;
-     reg [7:0] raw_data_in;
+    reg [15:0] data_in;
+    reg [7:0] raw_data_in;
     reg [6:0] phase_count = 4;
 always @(posedge clk) begin
     if(address%2 == 0) begin
@@ -74,20 +81,29 @@ reg [7:0] source;
 reg [9:0] gate;
 reg [16:0] address;
 
+parameter GATE_SIZE = 600;
+parameter SOURCE_SIZE = 200;
+
 parameter GATE_MAX_TIM = 613;
 parameter GATE_SPV_TIM = 607;
 parameter GATE_OE_TIM = 606;
 
 parameter SOURCE_MAX_TIM=205;
+parameter SOURCE_LE_TIM=202;
+parameter SOURCE_CKV_START=150;
+parameter SOURCE_CKV_END=203;
+parameter SOURCE_SPH_START=130;
 
 wire run = ~ready;
+
+wire skip=clip && ~(gate >= clip_y1 && gate <= clip_y2);
+//reg skip = 0;
 
 initial begin
     le<=1'b0;
     oe<=1'b0;
     sph<=1'b1;
     data<=8'h0;
-    //      cl<=1'b0;
     ckv<=1'b0;
     gmode<=1'b1;
     spv<=1'b1;
@@ -102,10 +118,10 @@ end
 // CKV
 always @(negedge cl) begin
     if(run) begin
-        if(source > 203) begin
+        if(source > SOURCE_CKV_END) begin
             ckv <= 1'b1;
         end else begin
-            if(source > 150) begin
+            if(source > SOURCE_CKV_START) begin
                 ckv <= 1'b0;
             end
         end
@@ -114,10 +130,9 @@ end
 
 // SPH
 always @(negedge cl) begin
-    if(run) begin
-//        if(source > 205) begin
+    if(run && ~skip) begin
         if(source == 0) begin
-            if(gate < 599) begin
+            if(gate < GATE_SIZE) begin
                 sph <= 1'b0;
             end else begin
                 if(gate==0) begin
@@ -125,7 +140,7 @@ always @(negedge cl) begin
                 end
             end
         end else begin
-            if(source > 130) begin
+            if(source > SOURCE_SPH_START) begin
                 sph <= 1'b1; 
             end
         end
@@ -134,8 +149,8 @@ end
 
 // LE
 always @(negedge cl) begin
-    if(run) begin
-        if(source==202) begin
+    if(run && ~skip) begin
+        if(source==SOURCE_LE_TIM) begin
             le<=1'b1;
         end else begin
             le<=1'b0;
@@ -145,38 +160,54 @@ always @(negedge cl) begin
     end
 end
 
-// OE + SPV
+// SPV
 always @(posedge cl) begin
     if(run) begin
-        if(gate==GATE_OE_TIM) begin
-            oe<=1'b0;
-        end else begin
-            oe<=1'b1;
-        end
-
         if(gate==GATE_SPV_TIM) begin
             spv<=1'b0;
         end else begin
             spv<=1'b1;
         end
-
     end else begin
-        oe<=1'b0;
         spv<=1'b1;
+    end
+end
+
+// OE
+always @(posedge cl) begin
+    if(run && ~skip) begin
+        if(gate==GATE_OE_TIM) begin
+            oe<=1'b0;
+        end else begin
+            oe<=1'b1;
+        end
+    end else begin
+        oe<=1'b0;        
     end
 end
 
 // DATA
 
 always @(posedge clk) begin
-    data <= data_in;    
+    if(~clip || (source >= clip_x1 && source <= clip_x2 && gate >= clip_y1 && gate <= clip_y2)) begin
+        data <= data_in;
+    end else begin
+        data <= 8'h0;
+    end
 end
 
 always @(posedge cl) begin
     if(run) begin
-        if(source < 200) begin
-            if(gate < 600) begin
+        if(source < SOURCE_SIZE) begin
+            if(gate < GATE_SIZE) begin
+            if(skip) begin
+                address <= address + SOURCE_SIZE;
+            end else begin
                 address <= address + 1;
+            end
+
+//                address <= address + 1;
+//                address <= source*gate;
             end else begin
                 address <= 0;
             end
@@ -187,9 +218,13 @@ always @(posedge cl) begin
 end
 
 always @(negedge cl) begin
-    if(run) begin
+    if(run) begin       
         if(source < SOURCE_MAX_TIM) begin
-            source <= source + 1;
+            if(skip && source < SOURCE_SIZE) begin
+                source <= SOURCE_SIZE;
+            end else begin
+                source <= source + 1;
+            end
         end else begin
             source <= 0;
             if(gate < GATE_MAX_TIM) begin
@@ -202,7 +237,6 @@ always @(negedge cl) begin
 end
 
 always @(posedge cl) begin
-//    if(source==SOURCE_MAX_TIM && gate==GATE_MAX_TIM) begin
     if(source==0 && gate==0) begin
         phase <= phase + 1;
     end

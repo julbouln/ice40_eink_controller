@@ -1,7 +1,7 @@
 PROJ = eink_controller
 PIN_DEF = ice40hx1k-evb.pcf
 DEVICE = hx1k
-CLK_CONSTRAINT = 80
+CLK_CONSTRAINT = 75
 
 all: $(PROJ).rpt $(PROJ).bin
 

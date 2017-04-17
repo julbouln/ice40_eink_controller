@@ -6,7 +6,8 @@ module waveform(
            input [1:0] phase_type,
            
            input [15:0] data_in,
-           output [7:0] data_out
+           output [7:0] data_out,
+           output identical
        );
 
 reg [31:0] waveform_rom [0:511];

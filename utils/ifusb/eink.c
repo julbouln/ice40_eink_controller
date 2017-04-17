@@ -103,6 +103,47 @@ uint8_t eink_ready() {
 
 #define CHUNK_SIZE 4096
 
+void eink_clear_clip() {
+	uint8_t cmd[4];
+	cmd[0] = EINK_CLEAR_CLIP;
+	cmd[1] = 0x00;
+
+	ifusb_gpio_clear(CS_PIN);
+	ifusb_spi_send(cmd, 2);
+	ifusb_gpio_set(CS_PIN);
+	usleep(100);
+}
+
+void eink_set_clip(int x1, int x2, int y1, int y2) {
+	uint8_t cmd[4];
+	cmd[0] = EINK_SET_CLIP;
+	cmd[1] = (uint8_t)(x1/4);
+	cmd[2] = (uint8_t)(x2/4);
+	cmd[3] = (uint8_t)((y1 >> 8) & 0xFF);
+	cmd[4] = (uint8_t)(y1 & 0xFF);
+	cmd[5] = (uint8_t)((y2 >> 8) & 0xFF);
+	cmd[6] = (uint8_t)(y2 & 0xFF);
+
+//	printf("CLIP %x %x %x %x %x %x\n",cmd[1],cmd[2],cmd[3],cmd[4],cmd[5],cmd[6]);
+
+	ifusb_gpio_clear(CS_PIN);
+	ifusb_spi_send(cmd, 7);
+	ifusb_gpio_set(CS_PIN);
+	usleep(100);
+}
+
+void eink_set_mode(int mode) {
+	uint8_t cmd[2];
+
+	// set draw mode
+	cmd[0] = EINK_SET_MODE;
+	cmd[1] = mode;
+
+	ifusb_gpio_clear(CS_PIN);
+	ifusb_spi_send(cmd, 2);
+	ifusb_gpio_set(CS_PIN);
+}
+
 void eink_flip() {
 	uint8_t cmd[4];
 	cmd[0] = EINK_DRAW;
@@ -129,12 +170,7 @@ void eink_clear() {
 
 	t1 = eink_bench();
 
-	cmd[0] = EINK_SET_MODE;
-	cmd[1] = 0x00;
-
-	ifusb_gpio_clear(CS_PIN);
-	ifusb_spi_send(cmd, 2);
-	ifusb_gpio_set(CS_PIN);
+	eink_set_mode(0x00);
 
 	// clear data
 	cmd[0] = EINK_WRITE;
@@ -162,25 +198,16 @@ void eink_clear() {
 
 }
 
-void eink_draw(uint8_t *buf) {
-	double t1, t2, t3, t4;
+void eink_write_fb(uint8_t *buf) {
+	double t1, t2;
 	uint8_t cmd[2];
-	int i, k;
 	int chunk_pos = 0;
 	uint8_t chunk_buf[CHUNK_SIZE];
+	int i, k;
 
 	t1 = eink_bench();
-
-	// set draw mode
-	cmd[0] = EINK_SET_MODE;
-	cmd[1] = 0x01;
-
-	ifusb_gpio_clear(CS_PIN);
-	ifusb_spi_send(cmd, 2);
-	ifusb_gpio_set(CS_PIN);
-
-	t3 = eink_bench();
 	// send data
+
 	cmd[0] = EINK_WRITE;
 	ifusb_gpio_clear(CS_PIN);
 	ifusb_spi_send(cmd, 1);
@@ -194,13 +221,24 @@ void eink_draw(uint8_t *buf) {
 			chunk_pos = 0;
 		}
 	}
-
 	ifusb_spi_send(chunk_buf, chunk_pos);
 	ifusb_gpio_set(CS_PIN);
-	t4 = eink_bench();
-	printf("eink_draw data sent in %f\n", t4 - t3);
 
+	t2 = eink_bench();
+	printf("eink_draw data sent in %f\n", t2 - t1);
+
+}
+
+void eink_draw(uint8_t *buf) {
+	double t1, t2;
+	uint8_t cmd[2];
+
+	t1 = eink_bench();
+
+	eink_set_mode(0x01);
+	eink_write_fb(buf);
 	eink_flip();
+
 	t2 = eink_bench();
 	printf("eink_draw in %f\n", t2 - t1);
 
