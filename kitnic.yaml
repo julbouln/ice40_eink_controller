@@ -1,0 +1,4 @@
+bom: hardware/1-click-bom.tsv
+gerbers: hardware/gerbers
+color: purple
+site: https://hackaday.io/project/21168-fpga-eink-controller
