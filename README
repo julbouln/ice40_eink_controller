@@ -1,7 +1,8 @@
 FPGA & STM32F0 driven EINK controller
 
-Final FPGA board: https://oshpark.com/shared_projects/rBoQ8bop
-ifusb companion: https://github.com/julbouln/ifusb
+- Final FPGA board: https://oshpark.com/shared_projects/rBoQ8bop
+- The links on the Kitnic page make ordering the parts easier: https://kitnic.it/boards/github.com/julbouln/ice40_eink_controller/
+- ifusb companion: https://github.com/julbouln/ifusb
 
 Prototype:
 - OLIMEX iCE40HX1K-EVB (https://www.olimex.com/Products/FPGA/iCE40/iCE40HX1K-EVB/open-source-hardware)
