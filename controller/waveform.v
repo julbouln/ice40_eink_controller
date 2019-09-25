@@ -12,7 +12,9 @@ module waveform(
 
 reg [31:0] waveform_rom [0:511];
 
-wire identical = (data_in[7:6] == data_in[15:14] && data_in[5:4] == data_in[13:12] && data_in[3:2] == data_in[11:10] && data_in[1:0] == data_in[9:8]);
+//wire identical = (data_in[7:6] == data_in[15:14] && data_in[5:4] == data_in[13:12] && data_in[3:2] == data_in[11:10] && data_in[1:0] == data_in[9:8]);
+
+wire identical = (data_in[7:0] == data_in[15:8]);
 
 parameter PHASE_INIT_OFFSET = 0;
 parameter PHASE_DU_OFFSET = 1;
@@ -53,8 +55,11 @@ assign data_out = {
 assign phase_count = phase_type==2'b00 ? PHASE_INIT_COUNT : (phase_type==2'b01 ? PHASE_DU_COUNT : PHASE_GC4_COUNT);
 wire [1:0] phase_offset = phase_type==2'b00 ? PHASE_INIT_OFFSET : (phase_type==2'b01 ? PHASE_DU_OFFSET : PHASE_GC4_OFFSET);
 
+reg [8:0] r_addr; 
+
 always @(posedge clk) begin
-  waveform_phase <= waveform_rom[(phase_offset << 7) + phase];
+  r_addr <= (phase_offset << 7) + phase;
+  waveform_phase <= waveform_rom[r_addr];
 end
 
 endmodule

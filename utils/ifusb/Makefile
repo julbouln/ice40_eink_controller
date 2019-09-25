@@ -3,7 +3,7 @@ IFUSB_DIR=/home/julbouln/Perso/ifusb/host
 OBJS=layer1.o
 CFLAGS=-I$(IFUSB_DIR) -I$(IFUSB_DIR)/../common -g
 
-READER_CFLAGS=-std=c++11 -g -O3 -fpermissive `freetype-config --cflags` -I$(EPUBTK_DIR)/litehtml/include  -I$(EPUBTK_DIR)/libhnj -I$(EPUBTK_DIR)/epub -I$(EPUBTK_DIR)/utf8 -I$(EPUBTK_DIR)/miniz -I$(EPUBTK_DIR)/tinyxml2 -I$(EPUBTK_DIR)/drivers
+READER_CFLAGS=-std=c++11 -g -O3 -fpermissive `freetype-config --cflags` -I$(EPUBTK_DIR)  -I$(EPUBTK_DIR)/libhnj -I$(EPUBTK_DIR)/epub -I$(EPUBTK_DIR)/utf8 -I$(EPUBTK_DIR)/miniz -I$(EPUBTK_DIR)/tinyxml2 -I$(EPUBTK_DIR)/drivers
 
 %.o : %.c
 	gcc $(CFLAGS) -o $@ -c $<
@@ -28,6 +28,11 @@ eink_reader: tps65185.o eink.o eink_renderer_driver.o eink_reader.o
 eink_gif: tps65185.o eink.o eink_gif.o
 	gcc -g -o eink_gif tps65185.o eink.o eink_gif.o $(IFUSB_DIR)/libifusb.a -lm -lusb-1.0
 
+eink_iceprog: spi_flash_sst25.o ifusb_iceprog.o
+	gcc -o eink_iceprog spi_flash_sst25.o ifusb_iceprog.o $(IFUSB_DIR)/libifusb.a -lm -lusb-1.0
+
+test_vt100: tps65185.o eink.o
+	gcc $(CFLAGS) tps65185.o eink.o vt100/display.c vt100/vt100.c vt100/test.c -o test_vt100 $(IFUSB_DIR)/libifusb.a -lm -lusb-1.0 -lSDL2
 
 clean:
 	rm -f *.o

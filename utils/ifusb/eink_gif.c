@@ -145,6 +145,7 @@ int main(int argc, char **argv)
 	res = stbi_xload(argv[1], &w, &h, &frames);
 	printf("%d %d %d\n", w, h, frames);
 
+//	eink_set_mode(MODE_DU);
 	eink_set_mode(MODE_GC4);
 	eink_set_clip(0, h, 0, w);
 
@@ -162,11 +163,8 @@ int main(int argc, char **argv)
 					if (i < w && (j + 3) < h) {
 						int p;
 						for (p = 0; p < 4; p++) {
-//						unsigned char dp = res[offset+(w - (j + p)) * w + i];
 							unsigned char *dp = res + offset + ((h - (j + p)) * w * 4 + i * 4);
-//						unsigned char dp = res + offset + (w - (j + p)) * w + i;
-//							if(dp)
-							pixel |= (dp[0] >> 6) << ((3 - p) * 2);
+							pixel |= ((dp[0] >> 6)) << ((3 - p) * 2);
 						}
 
 					} else {

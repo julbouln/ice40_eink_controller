@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 	eink_clear_clip();
-eink_clear();
+	eink_clear();
 
 /*
 epub.go_to_next_page();

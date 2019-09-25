@@ -36,8 +36,8 @@ module ed060sc7(
 wire [1:0] mode;
 
 // clock divider
-// CL_DIV=1 50Mhz cl - 20ns
-// CL_DIV=2 25Mhz cl - 40ns
+// CL_DIV=1 50Mhz cl - 20ns clk/2
+// CL_DIV=2 25Mhz cl - 40ns clk/4
 parameter CL_DIV = 1;
 reg [2:0] cl_counter=0;
 wire cl = cl_counter[CL_DIV] == 1'b1;
@@ -91,11 +91,11 @@ parameter GATE_MAX_TIM = 613;
 parameter GATE_SPV_TIM = 607;
 parameter GATE_OE_TIM = 606;
 
-parameter SOURCE_MAX_TIM=205;
-parameter SOURCE_LE_TIM=202;
-parameter SOURCE_CKV_START=150;
-parameter SOURCE_CKV_END=203;
-parameter SOURCE_SPH_START=130;
+parameter SOURCE_MAX_TIM = 205;
+parameter SOURCE_LE_TIM = 202;
+parameter SOURCE_CKV_START = 150;
+parameter SOURCE_CKV_END = 203;
+parameter SOURCE_SPH_START = 130;
 
 wire run = ~ready;
 
@@ -103,19 +103,19 @@ wire skip=clip && ~(gate >= clip_y1 && gate <= clip_y2);
 //reg skip = 0;
 
 initial begin
-    le<=1'b0;
-    oe<=1'b0;
-    sph<=1'b1;
-    data<=8'h0;
-    ckv<=1'b0;
-    gmode<=1'b1;
-    spv<=1'b1;
+    le <= 1'b0;
+    oe <= 1'b0;
+    sph <= 1'b1;
+    data <= 8'h0;
+    ckv <= 1'b0;
+    gmode <= 1'b1;
+    spv <= 1'b1;
 
-    source<=SOURCE_MAX_TIM;
-    gate<=GATE_OE_TIM;
-    address<=0;
+    source <= SOURCE_MAX_TIM;
+    gate <= GATE_OE_TIM;
+    address <= 0;
 
-    ready<=1'b1;
+    ready <= 1'b1;
 end
 
 // CKV
@@ -138,7 +138,7 @@ always @(negedge cl) begin
             if(gate < GATE_SIZE) begin
                 sph <= 1'b0;
             end else begin
-                if(gate==0) begin
+                if(gate == 0) begin
                     sph <= 1'b0;                
                 end
             end
@@ -153,39 +153,39 @@ end
 // LE
 always @(negedge cl) begin
     if(run && ~skip) begin
-        if(source==SOURCE_LE_TIM) begin
-            le<=1'b1;
+        if(source == SOURCE_LE_TIM) begin
+            le <= 1'b1;
         end else begin
-            le<=1'b0;
+            le <= 1'b0;
         end
     end else begin
-        le<=1'b0;
+        le <= 1'b0;
     end
 end
 
 // SPV
 always @(posedge cl) begin
     if(run) begin
-        if(gate==GATE_SPV_TIM) begin
-            spv<=1'b0;
+        if(gate == GATE_SPV_TIM) begin
+            spv <= 1'b0;
         end else begin
-            spv<=1'b1;
+            spv <= 1'b1;
         end
     end else begin
-        spv<=1'b1;
+        spv <= 1'b1;
     end
 end
 
 // OE
 always @(posedge cl) begin
     if(run && ~skip) begin
-        if(gate==GATE_OE_TIM) begin
-            oe<=1'b0;
+        if(gate == GATE_OE_TIM) begin
+            oe <= 1'b0;
         end else begin
-            oe<=1'b1;
+            oe <= 1'b1;
         end
     end else begin
-        oe<=1'b0;        
+        oe <= 1'b0;        
     end
 end
 
@@ -193,34 +193,32 @@ end
 
 always @(posedge clk) begin
     if(~clip || (source >= clip_x1 && source <= clip_x2 && gate >= clip_y1 && gate <= clip_y2)) begin
-//     if(~identical) begin
+     if(identical && mode > 0) begin
+            data <= 8'h0;
+        end else begin
             data <= data_in;
-//        end else begin
-//            data <= 8'h0;
-//        end
+        end
     end else begin
         data <= 8'h0;
     end
 end
 
-always @(posedge cl) begin
+always @(negedge cl) begin
     if(run) begin
         if(source < SOURCE_SIZE) begin
             if(gate < GATE_SIZE) begin
-            if(skip) begin
-                address <= address + SOURCE_SIZE;
-            end else begin
-                address <= address + 1;
-            end
-
+                if(skip) begin
+                    address <= address + SOURCE_SIZE;
+                end else begin
+                    address <= address + 1;
+                end
 //                address <= address + 1;
-//                address <= source*gate;
             end else begin
                 address <= 0;
             end
         end
     end else begin
-        address<=0;
+        address <= 0;
     end
 end
 
@@ -244,7 +242,7 @@ always @(negedge cl) begin
 end
 
 always @(posedge cl) begin
-    if(source==0 && gate==0) begin
+    if(source == 0 && gate == 0) begin
         phase <= phase + 1;
     end
     if(phase < (phase_count)) begin

@@ -23,7 +23,6 @@ module asram #(
 
 assign mem_address = address_bus;
 
-
 // for READ
 // if read enabled, drive current data, otherwise go hi Z
 assign data_bus_out = (~(ce_n | read_n | ~write_n)) ? mem_data_in : DATA_WIDTH'bz;

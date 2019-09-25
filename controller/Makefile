@@ -5,12 +5,14 @@ CLK_CONSTRAINT = 70
 
 all: $(PROJ).rpt $(PROJ).bin
 
-%.blif: %.v	
-	yosys -p 'synth_ice40 -top top -blif $@' $< > out.log
+%.json: %.v	
+#	yosys -p 'synth_ice40 -top top -blif $@' $< > out.log
+	yosys -p 'synth_ice40 -top top -json $@' $< > yosys.log
 # ; show -format svg -prefix eink_controller -stretch -colors 123456
 
-%.asc: $(PIN_DEF) %.blif
-	arachne-pnr -d $(subst hx,,$(subst lp,,$(DEVICE))) -o $@ -p $^ -P vq100
+%.asc: %.json
+#	arachne-pnr -d $(subst hx,,$(subst lp,,$(DEVICE))) -o $@ -p $^ -P vq100
+	nextpnr-ice40 --hx1k --json $^ --pcf $(PIN_DEF) --asc $@ --package vq100 --pcf-allow-unconstrained 2> nextpnr.log
 
 %.bin: %.asc
 	icepack $< $@

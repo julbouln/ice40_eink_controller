@@ -18,7 +18,6 @@ module top(
            inout [15:0]   DQ,
            output [17:0] A,
 
-
            output 	  GMODE,
            output 	  SPV,
            output 	  CKV,
@@ -36,26 +35,26 @@ module top(
 // 100Mhz clock
 wire clk = CLK;
 
-reg 	read_n=1'b1,
-     write_n=1'b1,
-     ce_n=1'b1;
+reg read_n = 1'b1,
+     write_n = 1'b1,
+     ce_n = 1'b1;
 
-reg [17:0] 		    address_bus = 0;
-reg [15:0] 		    data_bus_in;
-wire [15:0] 		    data_bus_out;
+reg [17:0] address_bus = 0;
+reg [15:0] data_bus_in;
+wire [15:0] data_bus_out;
 
 wire [7:0] data_bus_out_h = data_bus_out[15:8];
 wire [7:0] data_bus_out_l = data_bus_out[7:0];
 
 
-reg 			    rst=0;
+reg rst = 0;
 
 // bidirectional IO
 // https://www.reddit.com/r/yosys/comments/4p8723/iceblink40hx1k_and_yosys/
 
-wire 		    mem_out_en=~write_n;
-wire [15:0] 		mem_out;
-wire [15:0] 		mem_in;
+wire mem_out_en = ~write_n;
+wire [15:0] mem_out;
+wire [15:0] mem_in;
 
 SB_IO #(
           .PIN_TYPE(6'b 1010_01),
@@ -101,11 +100,11 @@ reg swap = 0;
 
 reg clip=0;
 
-reg [7:0] clip_x1=0;
-reg [7:0] clip_x2=200;
+reg [7:0] clip_x1 = 0;
+reg [7:0] clip_x2 = 200;
 
-reg [9:0] clip_y1=0;
-reg [9:0] clip_y2=600;
+reg [9:0] clip_y1 = 0;
+reg [9:0] clip_y2 = 600;
 
 parameter SPI_CLIP_X1 = 2;
 parameter SPI_CLIP_X2 = 3;
@@ -151,28 +150,28 @@ always @(posedge clk) begin
                 end else begin // other bytes are command's data
                     case(spi_cmd)
                         SPI_CMD_WRITE: begin
-                            write_state<=WRITE_START;
-                            spi_bytes_count<=0;
+                            write_state <= WRITE_START;
+                            spi_bytes_count <= 0;
                         end                        
                         SPI_CMD_PING: begin
                             spi_tx_byte <= spi_rx_byte;
-                            spi_bytes_count<=0;
+                            spi_bytes_count <= 0;
                         end
                         SPI_CMD_DRAW: begin
                             start <= 1;
-                            spi_bytes_count<=0;
+                            spi_bytes_count <= 0;
                         end
                         SPI_CMD_SET_MODE: begin
                             mode <= spi_rx_byte;
-                            spi_bytes_count<=0;
+                            spi_bytes_count <= 0;
                         end
                         SPI_CMD_STATUS: begin
-                            spi_tx_byte<={5'h0,mode,ready};
-                            spi_bytes_count<=0;
+                            spi_tx_byte <= {5'h0,mode,ready};
+                            spi_bytes_count <= 0;
                         end
                         SPI_CMD_CLEAR_CLIP: begin
-                            clip<=0;
-                            spi_bytes_count<=0;
+                            clip <= 0;
+                            spi_bytes_count <= 0;
                         end
                         SPI_CMD_SET_CLIP: begin
                           case(spi_bytes_count)
@@ -198,14 +197,14 @@ always @(posedge clk) begin
                             end
                           endcase
                           if(spi_bytes_count < SPI_CLIP_Y2_L) begin
-                            spi_bytes_count<=spi_bytes_count+1;
+                            spi_bytes_count <= spi_bytes_count+1;
                           end else begin
-                            clip<=1;
-                            spi_bytes_count<=0;
+                            clip <= 1;
+                            spi_bytes_count <= 0;
                           end
                         end
                         default: begin
-                            spi_bytes_count<=0;
+                            spi_bytes_count <= 0;
                             // unknown command
                         end
                     endcase
@@ -221,19 +220,20 @@ always @(posedge clk) begin
               end
               WRITE_START: begin
                 // keep previous data 
-                address_bus <= address_bus+1;
+                address_bus <= address_bus + 1;
                 write_n <= 1'b1;
                 read_n <= 1'b0;
                 ce_n <= 1'b0;
-                write_state<=WRITE_FLIP;
+                write_state <= WRITE_FLIP;
               end
               WRITE_FLIP: begin
                 // data_bus_out_prev <= data_bus_out;
-                data_out_r <= data_bus_out_l;
                 // wait memory read
-                wait_flip <= wait_flip+1;           
-                if(wait_flip==3)
-                  write_state<=WRITE_DONE;
+                wait_flip <= wait_flip + 1;           
+                if(wait_flip == 3) begin
+                  data_out_r <= data_bus_out_l;
+                  write_state <= WRITE_DONE;
+                end
               end
               WRITE_DONE: begin
                 // address_bus <= address_bus + 1;
@@ -243,9 +243,9 @@ always @(posedge clk) begin
                 write_n <= 1'b0;
                 read_n <= 1'b1;
                 ce_n <= 1'b0;
-                write_state<=WRITE_IDLE;
+                write_state <= WRITE_IDLE;
               end
-              default: begin                
+              default: begin
               end
               endcase
             end
@@ -267,7 +267,7 @@ always @(posedge clk) begin
                 end else begin
                     case(spi_cmd)
                         SPI_CMD_STATUS: begin
-                            spi_tx_byte<={5'h0,mode,ready};
+                            spi_tx_byte <= {5'h0,mode,ready};
                         end
                         default: begin
                             // other commands are ignored during drawing
@@ -285,6 +285,8 @@ end
   Notes:
   2-bits buffer = 800*600 * 8/4 = 960kBits = 120kBytes
   4-bits buffer = 800*600 * 8/2 = 1920kBits = 240kBytes
+  4-bits buffer with previous framebuffer = 480kBytes
+  available 44288 kBytes = max 173 4-bits phase waveform
 */
 
 asram #(.DATA_WIDTH(16),.ADDR_WIDTH(18)) sram(clk,
